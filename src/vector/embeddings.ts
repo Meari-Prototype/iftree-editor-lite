@@ -1,0 +1,262 @@
+export const MIN_VECTOR_DIMENSIONS = 32;
+export const DEFAULT_VECTOR_DIMENSIONS = 384;
+export const DEFAULT_BATCH_SIZE = 16;
+export const DEFAULT_WORKER_COUNT = 4;
+export const EMBEDDING_INIT_PROGRESS_UNITS = 1;
+
+export const VECTOR_MODEL_OPTIONS = Object.freeze([
+  {
+    id: 'qwen3-embedding-0.6b',
+    label: 'Qwen3 Embedding 0.6B',
+    baseModelName: 'Qwen/Qwen3-Embedding-0.6B',
+    modelName: 'Qwen/Qwen3-Embedding-0.6B',
+    modelPath: 'Ollama model: qwen3-embedding:0.6b',
+    ollamaModelName: 'qwen3-embedding:0.6b',
+    dimensions: DEFAULT_VECTOR_DIMENSIONS,
+    minDimensions: 32,
+    maxDimensions: 1024,
+    adjustableDimensions: true,
+    maxInputTokens: 32768,
+    pooling: 'last',
+    gpuDtype: 'fp16',
+    cpuDtype: 'q8',
+    runtime: 'ollama',
+    supportsLocalDownload: false,
+    queryInstruction: 'Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:'
+  },
+  {
+    id: 'bge-m3',
+    label: 'BGE-M3',
+    baseModelName: 'BAAI/bge-m3',
+    modelName: 'Xenova/bge-m3',
+    modelPath: 'Hugging Face model repo: Xenova/bge-m3',
+    ollamaModelName: 'bge-m3:latest',
+    dimensions: 1024,
+    minDimensions: 1024,
+    maxDimensions: 1024,
+    adjustableDimensions: false,
+    maxInputTokens: 8192,
+    pooling: 'cls',
+    gpuDtype: 'fp16',
+    cpuDtype: 'q8',
+    runtime: 'auto',
+    supportsLocalDownload: true,
+    queryInstruction: ''
+  },
+  {
+    id: 'bge-large-zh-v1.5',
+    label: 'BGE Large ZH v1.5',
+    baseModelName: 'BAAI/bge-large-zh-v1.5',
+    modelName: 'Xenova/bge-large-zh-v1.5',
+    modelPath: 'Hugging Face model repo: Xenova/bge-large-zh-v1.5',
+    dimensions: 1024,
+    minDimensions: 1024,
+    maxDimensions: 1024,
+    adjustableDimensions: false,
+    maxInputTokens: 512,
+    pooling: 'mean',
+    gpuDtype: 'fp16',
+    cpuDtype: 'q8',
+    runtime: 'transformers',
+    supportsLocalDownload: true,
+    queryInstruction: ''
+  },
+  {
+    id: 'bge-large-en-v1.5',
+    label: 'BGE Large EN v1.5',
+    baseModelName: 'BAAI/bge-large-en-v1.5',
+    modelName: 'Xenova/bge-large-en-v1.5',
+    modelPath: 'Hugging Face model repo: Xenova/bge-large-en-v1.5',
+    dimensions: 1024,
+    minDimensions: 1024,
+    maxDimensions: 1024,
+    adjustableDimensions: false,
+    maxInputTokens: 512,
+    pooling: 'mean',
+    gpuDtype: 'fp16',
+    cpuDtype: 'q8',
+    runtime: 'transformers',
+    supportsLocalDownload: true,
+    queryInstruction: ''
+  }
+]);
+
+export const VECTOR_COMPUTE_OPTIONS = Object.freeze([
+  {
+    id: 'gpu',
+    label: 'GPU / WebGPU',
+    backend: 'WebGPU',
+    renderer: 'Electron renderer module workers',
+    device: 'webgpu'
+  },
+  {
+    id: 'cpu',
+    label: 'CPU / wasm',
+    backend: 'wasm',
+    renderer: 'Electron renderer module workers',
+    device: 'wasm'
+  }
+]);
+
+export const DEFAULT_VECTOR_CONFIG = Object.freeze({
+  modelId: 'qwen3-embedding-0.6b',
+  computeTarget: 'gpu',
+  batchSize: DEFAULT_BATCH_SIZE,
+  workerCount: DEFAULT_WORKER_COUNT,
+  localModelRoot: '',
+  remoteModelHost: '',
+  importVectors: true
+});
+
+type VectorConfigInput = Record<string, unknown>;
+
+function optionById<T extends { id: string }>(options: readonly T[], id: unknown, fallbackId: string): T {
+  return options.find((option) => option.id === id)
+    || options.find((option) => option.id === fallbackId)
+    || options[0]!;
+}
+
+function clampInteger(value: unknown, min: number, max: number, fallback: number): number {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(number)));
+}
+
+export function normalizeVectorConfig(input: VectorConfigInput = {}) {
+  const model = optionById(VECTOR_MODEL_OPTIONS, input.modelId, DEFAULT_VECTOR_CONFIG.modelId);
+  const compute = optionById(VECTOR_COMPUTE_OPTIONS, input.computeTarget, DEFAULT_VECTOR_CONFIG.computeTarget);
+  const dimensions = model.adjustableDimensions
+    ? clampInteger(input.dimensions, model.minDimensions, model.maxDimensions, model.dimensions)
+    : model.dimensions;
+  const batchSize = clampInteger(input.batchSize, 1, 128, DEFAULT_VECTOR_CONFIG.batchSize);
+  const workerCount = clampInteger(input.workerCount, 1, 8, DEFAULT_VECTOR_CONFIG.workerCount);
+  const localModelRoot = typeof input.localModelRoot === 'string'
+    ? input.localModelRoot.trim()
+    : DEFAULT_VECTOR_CONFIG.localModelRoot;
+  const remoteModelHost = typeof input.remoteModelHost === 'string'
+    ? input.remoteModelHost.trim()
+    : DEFAULT_VECTOR_CONFIG.remoteModelHost;
+  const importVectors = input.importVectors !== undefined
+    ? Boolean(input.importVectors)
+    : DEFAULT_VECTOR_CONFIG.importVectors;
+
+  return {
+    modelId: model.id,
+    computeTarget: compute.id,
+    batchSize,
+    workerCount,
+    localModelRoot,
+    remoteModelHost,
+    importVectors,
+    label: model.label,
+    baseModelName: model.baseModelName,
+    modelName: model.modelName,
+    modelPath: model.modelPath,
+    ollamaModelName: model.ollamaModelName,
+    runtime: model.runtime,
+    supportsLocalDownload: model.supportsLocalDownload,
+    adjustableDimensions: model.adjustableDimensions,
+    queryInstruction: model.queryInstruction,
+    renderer: compute.renderer,
+    backend: model.runtime === 'ollama' ? 'Ollama' : compute.backend,
+    device: model.runtime === 'ollama' ? 'ollama' : compute.device,
+    dtype: compute.id === 'gpu' ? model.gpuDtype : model.cpuDtype,
+    pooling: model.pooling,
+    dimensions,
+    minDimensions: model.minDimensions,
+    maxDimensions: model.maxDimensions,
+    maxInputTokens: model.maxInputTokens,
+    computePolicy: model.runtime === 'ollama'
+      ? '由 Ollama 服务决定 CPU / GPU'
+      : compute.id === 'gpu'
+        ? 'GPU WebGPU computation'
+        : 'CPU wasm computation explicitly selected in settings'
+  };
+}
+
+export function assertEmbeddingVector(vector: unknown, context = 'Embedding vector', expectedDimensions: number | null = null) {
+  if (!Array.isArray(vector) && !(ArrayBuffer.isView(vector))) {
+    throw new Error(`${context} must be an array-like vector`);
+  }
+  const values = Array.from(vector as ArrayLike<any>, Number);
+  const exactDimensions = Number(expectedDimensions) || null;
+  if (exactDimensions && values.length !== exactDimensions) {
+    throw new Error(`${context} must have exactly ${exactDimensions} dimensions; got ${values.length}`);
+  }
+  if (!exactDimensions && values.length < MIN_VECTOR_DIMENSIONS) {
+    throw new Error(`${context} must have at least ${MIN_VECTOR_DIMENSIONS} dimensions; got ${values.length}`);
+  }
+  for (const value of values) {
+    if (!Number.isFinite(value)) {
+      throw new Error(`${context} contains a non-finite value`);
+    }
+  }
+  return values;
+}
+
+export function zeroEmbedding(dimensions = DEFAULT_VECTOR_DIMENSIONS) {
+  if (dimensions < MIN_VECTOR_DIMENSIONS) {
+    throw new Error(`Zero embedding must have at least ${MIN_VECTOR_DIMENSIONS} dimensions`);
+  }
+  return new Array(dimensions).fill(0);
+}
+
+export function normalizeVector(vector: unknown, expectedDimensions: number | null = null) {
+  const values = assertEmbeddingVector(vector, 'Vector', expectedDimensions);
+  const norm = Math.sqrt(values.reduce((sum, value) => sum + value * value, 0));
+  if (norm === 0) return values.map(() => 0);
+  return values.map((value) => value / norm);
+}
+
+function clampProgressNumber(value: unknown, min: number, max: number) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return min;
+  return Math.min(max, Math.max(min, number));
+}
+
+export function embeddingProgressTotal(textCount: unknown, includeInitialization = true) {
+  const count = Math.max(0, Math.trunc(Number(textCount) || 0));
+  return count + (includeInitialization && count > 0 ? EMBEDDING_INIT_PROGRESS_UNITS : 0);
+}
+
+export function embeddingProgressStep({
+  completedTexts = 0,
+  textCount = 0,
+  initializationProgress = 1,
+  includeInitialization = true
+}: {
+  completedTexts?: unknown;
+  textCount?: unknown;
+  initializationProgress?: unknown;
+  includeInitialization?: boolean;
+} = {}) {
+  const count = Math.max(0, Math.trunc(Number(textCount) || 0));
+  const completed = clampProgressNumber(completedTexts, 0, count);
+  if (!includeInitialization || count === 0) return completed;
+  const init = clampProgressNumber(initializationProgress, 0, EMBEDDING_INIT_PROGRESS_UNITS);
+  return clampProgressNumber(completed + init, 0, embeddingProgressTotal(count, true));
+}
+
+export function embeddingProgressCountLabel(completedTexts: unknown, totalTexts: unknown) {
+  const total = Math.max(0, Math.trunc(Number(totalTexts) || 0));
+  const completed = Math.trunc(clampProgressNumber(completedTexts, 0, total));
+  return `${completed} / ${total}`;
+}
+
+export function cosineSimilarity(left: ArrayLike<number>, right: ArrayLike<number>) {
+  const size = Math.min(left.length, right.length);
+  let dot = 0;
+  let leftNorm = 0;
+  let rightNorm = 0;
+
+  for (let index = 0; index < size; index += 1) {
+    const a = Number(left[index]) || 0;
+    const b = Number(right[index]) || 0;
+    dot += a * b;
+    leftNorm += a * a;
+    rightNorm += b * b;
+  }
+
+  if (leftNorm === 0 || rightNorm === 0) return 0;
+  return dot / (Math.sqrt(leftNorm) * Math.sqrt(rightNorm));
+}

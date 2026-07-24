@@ -1,0 +1,170 @@
+#!/usr/bin/env node
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { createDatabaseService, databaseReadActions } from '../src/backend/database-service.js';
+
+const ACTION_ALIASES = Object.freeze({
+  sql: 'debug.sql',
+  overview: 'debug.overview',
+  docs: 'content.listDocs',
+  library_index: 'library.index',
+  'library-index': 'library.index',
+  library_navigation: 'library.getNavigation',
+  'library-navigation': 'library.getNavigation',
+  index: 'content.getIndex',
+  node_content: 'content.getNode',
+  'node-content': 'content.getNode',
+  subtree: 'content.getSubtree',
+  depth: 'content.getDepth',
+  article: 'content.getArticle',
+  search: 'content.search',
+  search_all: 'content.searchAll',
+  'search-all': 'content.searchAll'
+});
+const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+type QueryPayload = Record<string, unknown> & { help?: boolean; action?: string; type?: string };
+const ACTION_ALIAS_MAP = ACTION_ALIASES as Record<string, string>;
+
+function defaultDbPath() {
+  return process.env.IFTREE_DB || join(PROJECT_ROOT, 'database', 'store.sqlite');
+}
+
+function defaultLibraryRoot() {
+  return process.env.IFTREE_LIBRARY_ROOT || join(PROJECT_ROOT, 'library');
+}
+
+function parseValue(value: unknown): unknown {
+  const raw = String(value ?? '');
+  if (raw === 'true') return true;
+  if (raw === 'false') return false;
+  if (raw === 'null') return null;
+  if (/^-?\d+(\.\d+)?$/.test(raw)) return Number(raw);
+  if ((raw.startsWith('{') && raw.endsWith('}')) || (raw.startsWith('[') && raw.endsWith(']'))) {
+    return JSON.parse(raw);
+  }
+  return raw;
+}
+
+function parseArgs(argv: string[]): QueryPayload {
+  if (argv.length === 0) return { action: 'debug.overview' };
+  if (argv[0] === 'help' || argv[0] === '--help' || argv[0] === '-h') {
+    return { help: true };
+  }
+  if (argv[0] === 'actions') return { action: 'query.actions' };
+  if (argv[0]?.startsWith('{')) return JSON.parse(argv.join(' '));
+
+  const payload: QueryPayload = { action: ACTION_ALIAS_MAP[argv[0]] || argv[0] || 'debug.overview' };
+  for (let index = 1; index < argv.length; index += 1) {
+    const key = argv[index];
+    if (!key.startsWith('--')) continue;
+    const name = key.slice(2);
+    const next = argv[index + 1];
+    if (next === undefined || next.startsWith('--')) {
+      payload[name] = true;
+      continue;
+    }
+    payload[name] = parseValue(next);
+    index += 1;
+  }
+  return payload;
+}
+
+function printHelp() {
+  console.log([
+    'Usage:',
+    '  node dist/scripts/query-db.js docs',
+    '  node dist/scripts/query-db.js library-index',
+    '  node dist/scripts/query-db.js library-navigation',
+    '  node dist/scripts/query-db.js index --docId <docId> --depth 3',
+    '  node dist/scripts/query-db.js depth --docId <docId> --from 1 --to 3 --detail full',
+    '  node dist/scripts/query-db.js node-content --docId <docId> --address 1-4-6 --include tags,source',
+    '  node dist/scripts/query-db.js subtree --docId <docId> --address 1-4-6 --levels 3',
+    '  node dist/scripts/query-db.js search --docId <docId> --query "keyword"',
+    '  node dist/scripts/query-db.js search-all --query "keyword" --format ascii_tree',
+    '  node dist/scripts/query-db.js article --docId <docId> --startOffset 0 --limit 8000',
+    '  node dist/scripts/query-db.js debug.overview',
+    '  node dist/scripts/query-db.js debug.sql --sql "SELECT depth, COUNT(*) AS count FROM nodes WHERE doc_id = \'<docId>\' GROUP BY depth"',
+    '  node dist/scripts/query-db.js doc.list',
+    '  node dist/scripts/query-db.js doc.getInfo --docId <docId>',
+    '  node dist/scripts/query-db.js node.get --docId <docId> --address 1-2',
+    '  node dist/scripts/query-db.js node.listChildren --docId <docId> --parentId <nodeId> --limit 50',
+    '',
+    `Actions: ${databaseReadActions().join(', ')}`,
+    '',
+    'Environment:',
+    '  IFTREE_DB    Query a specific SQLite database path.',
+    '',
+    'Options:',
+    '  --db <path>  Query a specific SQLite database path (overrides IFTREE_DB).'
+  ].join('\n'));
+}
+
+async function exitProcess(code: number) {
+  if (process.versions.electron) {
+    try {
+      const { app } = await import('electron');
+      if (app?.exit) {
+        app.exit(code);
+        return;
+      }
+    } catch {
+      // Electron-as-Node can expose process.versions.electron without app.
+    }
+  }
+  process.exit(code);
+}
+
+async function main() {
+  const payload = parseArgs(process.argv.slice(2));
+  if (payload.sqlFile) {
+    const sqlFilePath = resolve(String(payload.sqlFile));
+    if (!existsSync(sqlFilePath)) throw new Error(`SQL file not found: ${sqlFilePath}`);
+    payload.sql = readFileSync(sqlFilePath, 'utf8');
+    delete payload.sqlFile;
+  }
+  if (payload.help) {
+    printHelp();
+    await exitProcess(0);
+    return;
+  }
+  if (payload.action === 'query.actions') {
+    const database = createDatabaseService({
+      dbPath: defaultDbPath(),
+      libraryRoot: defaultLibraryRoot(),
+      initOptions: { readonly: true, migrate: false }
+    });
+    console.log(JSON.stringify(await database.run({ operation: 'read', payload }, 'read'), null, 2));
+    await exitProcess(0);
+    return;
+  }
+
+  // --db 显式指定优先于 IFTREE_DB 环境变量（环境变量可能被机器级配置占用，如压测 F 库）。
+  const dbPath = resolve(String(payload.db || defaultDbPath()));
+  delete payload.db;
+  const action = payload.action || payload.type;
+  if (action !== 'library.getTree' && !existsSync(dbPath)) {
+    throw new Error(`Database not found: ${dbPath}`);
+  }
+
+  const database = createDatabaseService({
+    dbPath,
+    libraryRoot: defaultLibraryRoot(),
+    initOptions: { readonly: true, migrate: false }
+  });
+  try {
+    const result = await database.run({ operation: 'read', payload }, 'read') as Record<string, unknown>;
+    if (result?.format === 'ascii_tree' && typeof result.text === 'string') console.log(result.text);
+    else console.log(JSON.stringify({ dbPath, ...(result || {}) }, null, 2));
+  } finally {
+    database.close();
+  }
+}
+
+main()
+  .then(() => exitProcess(0))
+  .catch(async (error: unknown) => {
+    console.error((error as { stack?: string } | null | undefined)?.stack || (error as { message?: string } | null | undefined)?.message || String(error));
+    await exitProcess(1);
+  });

@@ -1,0 +1,49 @@
+node_modules/
+dist/
+dist-electron/
+.vite/
+
+# Local app/runtime state
+.env
+.env.*
+!.env.example
+/database/
+# 默认忽略整个 library/，但只放行 db 契约测试用的真实夹具（其余 library 内容仍全部忽略）
+/library/*
+/library.zip
+!/library/generated/
+/library/generated/*
+!/library/generated/IFTreeEditor数据库读写测试样例.md
+!/library/generated/IFTreeEditor导入导出测试夹具.md
+/benchmark/
+/testcode/
+/testtext/
+/output/
+/tmp/
+.iftree-dev/
+.iftree-cache/
+.iftree-debug/
+# LLM 工作区整体不进库，只放行 skills/（对外 agent 技能文档，随仓库分发）
+.iftree-llm-workspace/*
+!.iftree-llm-workspace/skills/
+.superpowers/
+.claude/
+.obsidian/
+.gstack/
+
+# Private collaboration notes
+projectneed.md
+projectneed.txt
+AGENTS.md
+NOW.md
+
+# 内部架构文档,不进发布
+/architecture/
+
+*.log
+*.bak
+*.db
+*.sqlite
+*.sqlite3
+*.lance/
+*.ldb

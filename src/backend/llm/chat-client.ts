@@ -1,0 +1,136 @@
+export type LlmFetcher = (target: Parameters<typeof fetch>[0], init?: RequestInit) => Promise<Response>;
+
+interface FetchLlmConfig {
+  fetchers?: LlmFetcher[];
+  signal?: AbortSignal | null;
+  timeoutMs?: unknown;
+  errorPrefix?: unknown;
+}
+
+export function chatCompletionUrl(baseUrl: unknown, fullUrl = false) {
+  const base = String(baseUrl || 'https://api.deepseek.com').trim().replace(/\/+$/, '');
+  if (fullUrl) return base;
+  if (base.endsWith('/chat/completions')) return base;
+  return `${base}/chat/completions`;
+}
+
+export function anthropicMessagesUrl(baseUrl: unknown, fullUrl = false) {
+  const base = String(baseUrl || 'https://api.deepseek.com/anthropic').trim().replace(/\/+$/, '');
+  if (fullUrl) return base;
+  if (base.endsWith('/messages')) return base;
+  if (base.endsWith('/v1')) return `${base}/messages`;
+  return `${base}/v1/messages`;
+}
+
+function defaultFetchers(): LlmFetcher[] {
+  if (typeof fetch !== 'function') return [];
+  return [(target, init) => fetch(target, init)];
+}
+
+function cleanUrlForError(url: unknown) {
+  return String(url || '').replace(/\?.*$/, '');
+}
+
+function abortError(message = '请求已取消') {
+  const error = new Error(message);
+  error.name = 'AbortError';
+  return error;
+}
+
+export async function fetchLlmResponse(url: string, options: RequestInit = {}, config: FetchLlmConfig = {}) {
+  const fetchers = Array.isArray(config.fetchers) && config.fetchers.length > 0
+    ? config.fetchers
+    : defaultFetchers();
+  const errors: unknown[] = [];
+  const externalSignal = config.signal || options.signal || null;
+
+  for (const fetcher of fetchers) {
+    if (externalSignal?.aborted) throw abortError();
+    const controller = new AbortController();
+    let externalAbort = false;
+    let timeoutAbort = false;
+    const onExternalAbort = () => {
+      externalAbort = true;
+      controller.abort();
+    };
+    const timer = setTimeout(() => {
+      timeoutAbort = true;
+      controller.abort();
+    }, Math.max(1, Number(config.timeoutMs) || 45000));
+    externalSignal?.addEventListener?.('abort', onExternalAbort, { once: true });
+    try {
+      return await fetcher(url, { ...options, signal: controller.signal });
+    } catch (error: unknown) {
+      if (externalAbort || externalSignal?.aborted) throw abortError();
+      if (timeoutAbort) errors.push(new Error('请求超时'));
+      else errors.push(error);
+    } finally {
+      externalSignal?.removeEventListener?.('abort', onExternalAbort);
+      clearTimeout(timer);
+    }
+  }
+
+  const detail = errors
+    .map((error) => (error as { cause?: { message?: string } } | null | undefined)?.cause?.message || (error as { message?: string } | null | undefined)?.message || String(error))
+    .filter(Boolean)
+    .join('; ');
+  const prefix = config.errorPrefix || 'LLM 请求失败';
+  throw new Error(`${prefix}: 无法连接 ${cleanUrlForError(url)}。${detail || '网络请求未成功'}`);
+}
+
+export async function readJsonSseStream(
+  response: Response,
+  onChunk: (chunk: unknown) => void,
+  options: { signal?: AbortSignal | null } = {}
+) {
+  const signal = options.signal || null;
+  const assertNotAborted = () => {
+    if (signal?.aborted) throw abortError();
+  };
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  const handleLine = (line: string) => {
+    assertNotAborted();
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('data:')) return;
+    const data = trimmed.slice(5).trim();
+    if (!data || data === '[DONE]') return;
+    // 只吞 JSON 解析失败（畸形 keepalive chunk）;onChunk 抛出的业务异常（如 Anthropic
+    // 流式 type:error 事件被 agent-runtime 主动 throw）必须上抛,不能和解析失败共用静默
+    // catch——否则错误事件被吞、流以空答案「成功」收尾(review #8)。
+    let chunk: unknown;
+    try {
+      chunk = JSON.parse(data);
+    } catch {
+      return;
+    }
+    onChunk(chunk);
+  };
+
+  const pushText = (text: string) => {
+    assertNotAborted();
+    buffer += text;
+    const lines = buffer.split(/\r?\n/);
+    buffer = lines.pop() || '';
+    for (const line of lines) handleLine(line);
+  };
+
+  if (response.body?.getReader) {
+    const reader = response.body.getReader();
+    for (;;) {
+      assertNotAborted();
+      const { done, value } = await reader.read();
+      if (done) break;
+      pushText(decoder.decode(value, { stream: true }));
+    }
+  } else if (response.body) {
+    for await (const chunk of response.body as AsyncIterable<BufferSource>) {
+      assertNotAborted();
+      pushText(decoder.decode(chunk, { stream: true }));
+    }
+  }
+
+  pushText(decoder.decode());
+  if (buffer.trim()) handleLine(buffer);
+}

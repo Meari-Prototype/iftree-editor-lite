@@ -1,0 +1,164 @@
+/* 主题与配色 token 模块：颜色字面量只允许出现在本文件。
+   styles.css 只消费语义 token，不再维护第二套固定配色。
+   切换：document.documentElement.dataset.theme = 'obsidian' | 'pine'，见 lib/theme.ts。 */
+
+:root {
+  /* obsidian（默认）：中性灰 + 紫 accent */
+  --background-primary: #ffffff;
+  --background-primary-rgb: 255, 255, 255;
+  --background-secondary: #f6f6f6;
+  --background-secondary-rgb: 246, 246, 246;
+  --background-modifier-border: #e0e0e0;
+  --background-modifier-border-rgb: 224, 224, 224;
+  --background-modifier-border-strong: #d0d0d0;
+  --background-modifier-hover: rgba(0, 0, 0, 0.055);
+  --text-normal: #1f1f1f;
+  --text-normal-rgb: 31, 31, 31;
+  --text-body: #2e2e2e;
+  --text-muted: #6a6a6a;
+  --text-on-accent: #ffffff;
+  --interactive-accent: #7b5ce6;
+  --interactive-accent-hover: #5f46c4;
+  --interactive-accent-rgb: 123, 92, 230;
+  --interactive-accent-hover-rgb: 95, 70, 196;
+  --accent-soft: #efebfc;
+  --accent-border: #b1a3ea;
+  --accent-border-light: #c5baef;
+  --text-accent-strong: #2f2260;
+  --text-accent-muted: #767097;
+  --color-warning: #d08b1d;
+
+  /* 由主题基础色派生的通用层级；pine 只需覆盖上面的基础色。 */
+  --background-tertiary: color-mix(in srgb, var(--background-secondary) 65%, var(--background-modifier-border));
+  --background-inverse: var(--text-normal);
+  --background-inverse-hover: var(--text-body);
+  --background-modifier-hover-strong: color-mix(in srgb, var(--background-modifier-border) 68%, var(--background-secondary));
+  --text-secondary: color-mix(in srgb, var(--text-body) 68%, var(--text-muted));
+  --text-faint: color-mix(in srgb, var(--text-muted) 72%, var(--background-primary));
+  --text-inverse: var(--text-on-accent);
+  --border-emphasis: color-mix(in srgb, var(--background-modifier-border-strong) 76%, var(--text-muted));
+  --fill-muted: color-mix(in srgb, var(--text-muted) 48%, var(--background-primary));
+  --mask-opaque: #000000;
+
+  /* 透明表面、焦点与阴影。 */
+  --surface-primary-translucent: rgba(var(--background-primary-rgb), 0.88);
+  --surface-primary-translucent-soft: rgba(var(--background-primary-rgb), 0.72);
+  --surface-primary-translucent-strong: rgba(var(--background-primary-rgb), 0.92);
+  --surface-secondary-translucent-soft: rgba(var(--background-secondary-rgb), 0.82);
+  --surface-secondary-translucent: rgba(var(--background-secondary-rgb), 0.86);
+  --surface-secondary-translucent-strong: rgba(var(--background-secondary-rgb), 0.92);
+  --border-translucent: rgba(var(--background-modifier-border-rgb), 0.72);
+  --divider-translucent: color-mix(in srgb, var(--text-muted) 24%, transparent);
+  --on-inverse-a10: rgba(255, 255, 255, 0.10);
+  --on-inverse-a12: rgba(255, 255, 255, 0.12);
+  --on-inverse-a14: rgba(255, 255, 255, 0.14);
+  --on-inverse-a15: rgba(255, 255, 255, 0.15);
+  --on-inverse-a18: rgba(255, 255, 255, 0.18);
+  --scrollbar-thumb: rgba(var(--text-normal-rgb), 0.18);
+  --scrollbar-thumb-hover: rgba(var(--text-normal-rgb), 0.32);
+  --scrollbar-thumb-firefox: rgba(var(--text-normal-rgb), 0.24);
+  --shadow-xs: rgba(var(--text-normal-rgb), 0.04);
+  --shadow-sm: rgba(var(--text-normal-rgb), 0.08);
+  --shadow-md: rgba(var(--text-normal-rgb), 0.16);
+  --shadow-lg: rgba(var(--text-normal-rgb), 0.18);
+  --shadow-xl: rgba(var(--text-normal-rgb), 0.22);
+  --scrim: rgba(var(--text-normal-rgb), 0.38);
+  --interactive-accent-a13: rgba(var(--interactive-accent-rgb), 0.13);
+  --interactive-accent-a15: rgba(var(--interactive-accent-rgb), 0.15);
+  --interactive-accent-a20: rgba(var(--interactive-accent-rgb), 0.20);
+  --interactive-accent-a45: rgba(var(--interactive-accent-rgb), 0.45);
+  --interactive-accent-a78: rgba(var(--interactive-accent-rgb), 0.78);
+  --interactive-accent-hover-a08: rgba(var(--interactive-accent-hover-rgb), 0.08);
+  --interactive-accent-hover-a14: rgba(var(--interactive-accent-hover-rgb), 0.14);
+  --interactive-accent-hover-a22: rgba(var(--interactive-accent-hover-rgb), 0.22);
+  --interactive-accent-hover-a25: rgba(var(--interactive-accent-hover-rgb), 0.25);
+  --interactive-accent-hover-a42: rgba(var(--interactive-accent-hover-rgb), 0.42);
+  --interactive-accent-hover-a45: rgba(var(--interactive-accent-hover-rgb), 0.45);
+  --interactive-accent-hover-a55: rgba(var(--interactive-accent-hover-rgb), 0.55);
+
+  /* 状态色与标记色。 */
+  --color-danger: #b54e3c;
+  --color-danger-text: #8d3b31;
+  --color-danger-border: #d58f83;
+  --color-danger-soft: #f7dfdc;
+  --color-danger-softer: #fff7f5;
+  --color-warning-text: #6f5a34;
+  --color-warning-border: #d3b870;
+  --color-warning-soft: #fff6d9;
+  --color-success: #2f6655;
+  --color-success-border: #a9cdb4;
+  --color-success-soft: #edf7ef;
+  --color-info: #365f91;
+  --color-info-text: #244453;
+  --color-info-border: #688798;
+  --color-info-soft: #ebf3f6;
+  --color-highlight: rgba(255, 225, 0, 0.18);
+  --color-highlight-soft: rgba(255, 225, 0, 0.08);
+  --color-highlight-medium: rgba(255, 225, 0, 0.30);
+  --color-highlight-strong: rgba(255, 225, 0, 0.42);
+  --color-highlight-border: rgba(213, 179, 61, 0.45);
+  --color-danger-wash: color-mix(in srgb, var(--color-danger) 24%, transparent);
+  --color-warning-wash: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  --color-warning-wash-soft: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  --color-warning-shadow: color-mix(in srgb, var(--color-warning) 20%, transparent);
+  --color-success-wash: color-mix(in srgb, var(--color-success) 24%, transparent);
+  --accent-wash: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
+  --accent-wash-soft: color-mix(in srgb, var(--interactive-accent) 4%, transparent);
+
+  /* 固定深色代码面与语法高亮仍走 token，避免散落到组件样式。 */
+  --code-background: #181818;
+  --code-background-secondary: #202020;
+  --code-background-hover: #2a2a2a;
+  --code-background-active: #2a2d2e;
+  --code-background-elevated: #252526;
+  --code-background-control: #2f3133;
+  --code-border: #333842;
+  --code-border-strong: #454545;
+  --code-resizer: #3a4654;
+  --code-resizer-hover: rgba(66, 153, 225, 0.36);
+  --code-text: #e6edf3;
+  --code-text-muted: #8d96a0;
+  --code-text-faint: #858585;
+  --code-text-control: #c5c5c5;
+  --code-address: #71d27c;
+  --code-title: #fff06a;
+  --code-summary: #9cdcfe;
+  --code-indent-guide: rgba(255, 255, 255, 0.11);
+  --syntax-keyword: #ff7bff;
+  --syntax-string: #ffb86c;
+  --syntax-number: #b5f27c;
+  --syntax-comment: #7fdd8a;
+  --syntax-function: #fff06a;
+  --syntax-type: #43e6d8;
+  --syntax-operator: #89ddff;
+  --syntax-plain: #e6edf3;
+  --code-block-background: #1e1e1e;
+  --code-block-text: #d4d4d4;
+}
+
+:root[data-theme="pine"] {
+  /* pine：松绿纸感主题。 */
+  --background-primary: #fbfcfa;
+  --background-primary-rgb: 251, 252, 250;
+  --background-secondary: #f3f5f2;
+  --background-secondary-rgb: 243, 245, 242;
+  --background-modifier-border: #d9ded9;
+  --background-modifier-border-rgb: 217, 222, 217;
+  --background-modifier-border-strong: #c6cec8;
+  --background-modifier-hover: rgba(47, 102, 85, 0.07);
+  --text-normal: #202724;
+  --text-normal-rgb: 32, 39, 36;
+  --text-body: #35403b;
+  --text-muted: #737c76;
+  --text-on-accent: #ffffff;
+  --interactive-accent: #2f6655;
+  --interactive-accent-hover: #214a3d;
+  --interactive-accent-rgb: 47, 102, 85;
+  --interactive-accent-hover-rgb: 33, 74, 61;
+  --accent-soft: #e3eee8;
+  --accent-border: #78947f;
+  --accent-border-light: #9eb4a6;
+  --text-accent-strong: #1c3a2f;
+  --text-accent-muted: #596f62;
+  --color-warning: #c68a36;
+}
