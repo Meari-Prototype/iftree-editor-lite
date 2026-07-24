@@ -4,7 +4,7 @@
 
 > A local-first document data management tool: it organizes multi-document corpora into address-stable if-trees so you can pinpoint the exact passage you need within large bodies of text (designed for up to tens of billions of characters). Search results trace back to their precise source, and the corpus can be handed to external agent frameworks for collaborative processing via MCP.
 >
-> **IFTreeEditorLite is the lite edition of IFTreeEditor: a strictly single-machine, personal knowledge base.** For enterprise-grade, multi-endpoint, complex deployments, see its sister project IFTreeEditor. This project is built on IFTreeEditor **0.6.6**, takes an optimistic approach to most scenarios, and sharply pares back the feature surface. The frontend currently has no known bugs or crashes in read-only mode; **for a first try, start with the paper-reading experience in the PDF view**.
+> **IFTreeEditorLite is the lite edition of [IFTreeEditor](https://github.com/Meari-Prototype/iftree-editor): a strictly single-machine, personal knowledge base.** For enterprise-grade, multi-endpoint, complex deployments, see its sister project [IFTreeEditor](https://github.com/Meari-Prototype/iftree-editor). This project is built on IFTreeEditor **0.6.6**, takes an optimistic approach to most scenarios, and sharply pares back the feature surface. The frontend currently has no known bugs or crashes in read-only mode; **for a first try, start with the paper-reading experience in the PDF view**.
 
 ![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 ![Electron](https://img.shields.io/badge/Electron-39-47848F?logo=electron&logoColor=white)

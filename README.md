@@ -4,7 +4,7 @@
 
 > 本地优先的文档数据管理工具：把多文档语料整理成带稳定地址的 if-tree 条件树，便于在大规模原文（设计目标为百亿字级）中精确定位所需片段。检索结果可回溯到具体出处，也可通过 MCP 交由外部 agent 框架协作处理。
 >
-> **IFTreeEditorLite 是 [IFTreeEditor](https://github.com/) 的精简版：严格的单机个人向知识库**——如需企业级多端复杂部署，请参考其姐妹项目 IFTreeEditor。本项目基于 IFTreeEditor 的 **0.6.6** 版本开发，对多数场景采用乐观方式处理，并大幅精简功能面。当前前端在只读模式下已无明显 bug 或崩溃；**试用时可最先尝试 PDF 视图下的论文阅读体验**。
+> **IFTreeEditorLite 是 [IFTreeEditor](https://github.com/Meari-Prototype/iftree-editor) 的精简版：严格的单机个人向知识库**——如需企业级多端复杂部署，请参考其姐妹项目 [IFTreeEditor](https://github.com/Meari-Prototype/iftree-editor)。本项目基于 IFTreeEditor 的 **0.6.6** 版本开发，对多数场景采用乐观方式处理，并大幅精简功能面。当前前端在只读模式下已无明显 bug 或崩溃；**试用时可最先尝试 PDF 视图下的论文阅读体验**。
 
 ![license](https://img.shields.io/badge/license-Apache--2.0-blue.svg)
 ![Electron](https://img.shields.io/badge/Electron-39-47848F?logo=electron&logoColor=white)
