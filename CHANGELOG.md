@@ -6,7 +6,7 @@
 
 ### 启动与分发
 
-- 新增 Windows 一键启动器 `iftree.exe`（56KB NSIS 自包含，随仓库分发，带项目图标）。探测 `node_modules`：缺依赖才弹安装卡片静默跑 `npm install` 与构建，已有依赖直接拉起应用，全程不弹命令行窗口。`npm run makensis` 可重新编译。
+- 新增 Windows 一键启动器 `iftree.exe`（56KB NSIS 自包含，随仓库分发，带项目图标）。探测 `node_modules`：缺依赖才弹安装卡片静默跑 `npm install` 与构建，已有依赖直接拉起应用，全程不弹命令行窗口。一般无需重新编译；如需改图标或启动逻辑，编辑 `iftree-launcher.nsi`（图标改 `MUI_ICON`）后用 `npm run makensis` 重编——该脚本写死了 NSIS 默认安装路径 `C:\Program Files (x86)\NSIS\makensis.exe`，本机装在别处需先改成实际路径。
 - 空文档态卡片加入「主文件夹」下划线链接，桌面端点击在文件管理器打开 library（不存在自动创建），悬停显示真实路径。
 
 ### 外观与主题

@@ -74,7 +74,11 @@ $env:IFTREE_WEB_URL = 'http://127.0.0.1:5173'
 npm run app
 ```
 
-Windows 上也可以直接双击 `start.bat`。Linux / macOS 在项目根目录运行：
+Windows 上一键启动：直接双击仓库根目录的 `iftree.exe`（几十 KB 的 NSIS 启动器，随仓库分发）。它会探测依赖——没有 `node_modules` 才显示安装卡片静默跑 `npm install` 和构建，已有依赖则直接拉起应用，全程不弹命令行窗口。`start.bat` 是等价的手动脚本备选。
+
+一般无需重新编译启动器；若要改图标或启动逻辑，编辑 `iftree-launcher.nsi`（图标改其中的 `MUI_ICON`）后用 `npm run makensis` 重编。注意该脚本写死了 NSIS 默认安装路径 `C:\Program Files (x86)\NSIS\makensis.exe`，本机 NSIS 装在别处时需先改成实际路径。
+
+Linux / macOS 在项目根目录运行：
 
 ```sh
 sh start.sh

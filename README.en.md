@@ -74,7 +74,11 @@ $env:IFTREE_WEB_URL = 'http://127.0.0.1:5173'
 npm run app
 ```
 
-On Windows you can also double-click `start.bat`. On Linux or macOS, run this from the project root:
+On Windows, one-click launch: double-click `iftree.exe` in the project root (a tiny NSIS launcher, a few dozen KB, shipped with the repo). It probes for dependencies — only when `node_modules` is missing does it show an install card and silently run `npm install` plus the build; with dependencies already present it launches the app directly, without ever opening a console window. `start.bat` is the equivalent manual-script fallback.
+
+You normally don't need to recompile the launcher; to change the icon or launch logic, edit `iftree-launcher.nsi` (the icon is its `MUI_ICON`) and rebuild with `npm run makensis`. Note that this script hardcodes the default NSIS install path `C:\Program Files (x86)\NSIS\makensis.exe`, so if NSIS is installed elsewhere on your machine, point it to the actual path first.
+
+On Linux or macOS, run this from the project root:
 
 ```sh
 sh start.sh
