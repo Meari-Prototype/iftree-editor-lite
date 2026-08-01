@@ -25,7 +25,7 @@ import { loadPromptCatalog } from '../../lang/prompt-loader.js';
 import { createAgentRuntime } from './agent-runtime.js';
 import {
   createLlmSettingsReader,
-  readDotEnv
+  applyDotEnvToProcessEnv
 } from './settings.js';
 import {
   createLibraryFs,
@@ -141,9 +141,7 @@ export function createHeadlessAgentHost(options: HeadlessAgentHostOptions = {}):
   // server 不加载 .env 文件，导致读 process.env 的项（如嵌入后端 IFTREE_EMBED_*）
   // 拿不到 .env 配置。这里在子进程内把 .env 灌进 process.env，只填未显式设置的键
   // （不覆盖外部注入），restart_backend 即可让 .env 生效，无需重连 MCP。
-  for (const [dotEnvKey, dotEnvValue] of Object.entries(readDotEnv(envPath))) {
-    if (process.env[dotEnvKey] === undefined && dotEnvValue !== undefined) process.env[dotEnvKey] = dotEnvValue;
-  }
+  applyDotEnvToProcessEnv(envPath);
   type DatabaseService = ReturnType<typeof createDatabaseService>;
   let database: DatabaseService | null = null;
   let readDatabase: DatabaseService | null = null;

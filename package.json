@@ -1,6 +1,6 @@
 {
   "name": "iftree-editor-lite",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "license": "Apache-2.0",
   "author": "Meari",
@@ -19,6 +19,7 @@
     "premcp:node": "npm run build:runtime",
     "mcp:node": "node dist/src/mcp/mcp-server.js",
     "build": "vite build && node scripts/build.mjs",
+    "makensis": "cmd /c \"\"C:\\Program Files (x86)\\NSIS\\makensis.exe\" iftree-launcher.nsi\"",
     "build:runtime": "node scripts/build.mjs",
     "lint": "eslint src electron scripts tests",
     "check:types": "tsc --noEmit -p tsconfig.check.json",

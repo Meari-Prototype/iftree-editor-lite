@@ -35,8 +35,8 @@
       "activeNodeSummaryStrategyId": "node-default"
     },
     "shared": {
-      "activeProviderId": "qwen",
-      "activeApiId": "qwen-3-8-max-preview",
+      "activeProviderId": "deepseek",
+      "activeApiId": "deepseek-flash",
       "providers": [
         {
           "id": "deepseek",
@@ -55,16 +55,19 @@
               "contextLimit": 0,
               "maxOutputTokens": 0,
               "reasoningEfforts": [
+                "low",
                 "high",
                 "xhigh"
               ],
               "reasoningEffortMap": {
+                "low": "low",
+                "high": "high",
                 "xhigh": "max"
               },
               "enabled": true
             },
             {
-              "id": "api-mowypu3h-qh0g9",
+              "id": "deepseek-flash",
               "name": "deepseek-v4-flash",
               "note": "",
               "baseUrl": "https://api.deepseek.com",
@@ -74,10 +77,13 @@
               "contextLimit": 0,
               "maxOutputTokens": 0,
               "reasoningEfforts": [
+                "low",
                 "high",
                 "xhigh"
               ],
               "reasoningEffortMap": {
+                "low": "low",
+                "high": "high",
                 "xhigh": "max"
               },
               "enabled": true
@@ -133,7 +139,7 @@
               "enabled": true
             },
             {
-              "id": "api-mowviq0h-3ca2w",
+              "id": "openai-gpt-5-2",
               "name": "OpenAI GPT-5.2（兼容）",
               "note": "兼容项",
               "baseUrl": "https://api.openai.com/v1",
@@ -155,7 +161,7 @@
           "websiteUrl": "https://docs.anthropic.com/en/api/openai-sdk",
           "apis": [
             {
-              "id": "api-mowviycz-izd9e",
+              "id": "claude-opus-4-8",
               "name": "Claude Opus 4.8",
               "note": "",
               "baseUrl": "https://api.anthropic.com/v1",
@@ -169,7 +175,7 @@
               "enabled": true
             },
             {
-              "id": "api-mowviycz-fgp6x",
+              "id": "claude-sonnet-4-6",
               "name": "Claude Sonnet 4.6",
               "note": "",
               "baseUrl": "https://api.anthropic.com/v1",
@@ -191,7 +197,7 @@
           "websiteUrl": "https://platform.minimaxi.com/docs/api-reference/text-chat-openai",
           "apis": [
             {
-              "id": "api-mowvizq8-qlc85",
+              "id": "minimax-cn",
               "name": "MiniMax 中国站",
               "note": "",
               "baseUrl": "https://api.minimaxi.com/v1",
@@ -205,7 +211,7 @@
               "enabled": true
             },
             {
-              "id": "api-mowvizq8-o3uvy",
+              "id": "minimax-global",
               "name": "MiniMax Global",
               "note": "",
               "baseUrl": "https://api.minimax.io/v1",
@@ -227,7 +233,7 @@
           "websiteUrl": "https://docs.bigmodel.cn/cn/guide/develop/openai/introduction",
           "apis": [
             {
-              "id": "api-mowvj0mn-wnkqh",
+              "id": "glm-5-2",
               "name": "GLM-5.2",
               "note": "",
               "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
@@ -249,7 +255,7 @@
           "websiteUrl": "https://platform.kimi.ai/docs/api/overview",
           "apis": [
             {
-              "id": "api-mowvj7ki-wm1wl",
+              "id": "kimi-k2-6",
               "name": "Kimi K2.6",
               "note": "",
               "baseUrl": "https://api.moonshot.ai/v1",
@@ -375,7 +381,7 @@
           "websiteUrl": "https://ai.google.dev/gemini-api/docs/openai",
           "apis": [
             {
-              "id": "api-mowvj9q7-ilg7s",
+              "id": "gemini-3-5-flash",
               "name": "Gemini 3.5 Flash",
               "note": "",
               "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
@@ -397,7 +403,7 @@
           "websiteUrl": "https://docs.x.ai/overview",
           "apis": [
             {
-              "id": "api-mowvjcc2-cwh08",
+              "id": "grok-4-20-reasoning",
               "name": "Grok 4.20 Reasoning",
               "note": "",
               "baseUrl": "https://api.x.ai/v1",

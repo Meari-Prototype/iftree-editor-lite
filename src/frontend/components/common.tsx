@@ -2,6 +2,7 @@ import { ChevronDown, FileText, ListTree, LocateFixed, Minus, Square, Upload, X
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useUiLanguage } from '../../lang/ui.js';
+import { callIftree, hasIftreeMethod } from '../data/iftree-api.js';
 import { closeWindow, minimizeWindow, toggleMaximizeWindow } from '../data/window-service.js';
 
 interface ImportModeOption {
@@ -81,6 +82,45 @@ interface ViewPromptCardProps {
   onImport?: (mode: string, options?: VectorImportOptions) => void;
 }
 
+// 下划线链接式按钮：打开 library 文件夹。Electron 下经主进程 shell.openPath 打开系统
+// 文件管理器；纯 Web 预览没有原生通道，退回 readLibraryTree 拿绝对路径展示给用户。
+// 悬停 title 显示真实目录地址（挂载时拉取，两种模式下都有 tooltip）。
+function OpenLibraryFolderLink({ label }: { label: string }) {
+  const [libraryPath, setLibraryPath] = useState('');
+  const openPathAvailable = hasIftreeMethod('openPath');
+
+  useEffect(() => {
+    let alive = true;
+    void callIftree<{ fullPath?: unknown }>('readLibraryTree')
+      .then((tree) => {
+        if (alive) setLibraryPath(String(tree?.fullPath || ''));
+      })
+      .catch(() => {
+        // 路径拿不到只影响 tooltip，不阻断链接本身。
+      });
+    return () => { alive = false; };
+  }, []);
+
+  const openLibraryFolder = async (): Promise<void> => {
+    try {
+      if (openPathAvailable) await callIftree('openPath', 'library');
+    } catch {
+      // 打开失败（路径无效等）不打断空状态页；主进程返回值已携带失败原因。
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className="view-prompt-link"
+      title={libraryPath || undefined}
+      onClick={() => void openLibraryFolder()}
+    >
+      {label}
+    </button>
+  );
+}
+
 export function ViewPromptCard({ selectedLibraryEntry, onImport }: ViewPromptCardProps) {
   const { messages } = useUiLanguage();
   const text = messages.import;
@@ -121,6 +161,11 @@ export function ViewPromptCard({ selectedLibraryEntry, onImport }: ViewPromptCar
         <div className="view-prompt-copy">
           <strong>{text.startWithDocument}</strong>
           <span>{text.startWithDocumentDescription}</span>
+          <span>
+            {text.startWithDocumentHintBeforeLink}
+            <OpenLibraryFolderLink label={text.startWithDocumentHintLink} />
+            {text.startWithDocumentHintAfterLink}
+          </span>
         </div>
       </div>
     );

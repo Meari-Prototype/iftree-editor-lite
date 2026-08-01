@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, screen, shell } from 'electron';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { existsSync, statSync } from 'node:fs';
+import { mkdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -130,19 +130,33 @@ function registerOsBridge() {
     const result = mainWindow ? await dialog.showOpenDialog(mainWindow, options) : await dialog.showOpenDialog(options);
     return { path: result.canceled ? '' : (result.filePaths[0] || '') };
   });
-  // 在系统文件管理器中显示路径：仅放行 PROJECT_ROOT / appHome 之内的绝对路径（防渲染层
-  // 借道打开任意系统目录）；目录直接打开，文件定位到其父目录。
+  // 在系统文件管理器中显示路径：仅放行 PROJECT_ROOT / appHome / library 根之内的路径
+  // （防渲染层借道打开任意系统目录）；目录直接打开，文件定位到其父目录。渲染层可传
+  // 相对路径（目前仅 'library'，归一化后不含 .. 即按项目根解析）；目录不存在时自动创建。
   ipcMain.handle(channels.SHELL_OPEN_PATH, async (_event, payload) => {
     const target = typeof payload === 'string' ? payload : '';
-    if (!target || !isAbsolute(target)) return { ok: false, error: '路径无效' };
-    const resolved = resolve(target);
+    if (!target) return { ok: false, error: '路径无效' };
     const home = process.env.IFTREE_HOME || join(PROJECT_ROOT, 'database');
-    if (!isSameOrChildPath(resolved, PROJECT_ROOT) && !isSameOrChildPath(resolved, home)) {
-      return { ok: false, error: '仅允许打开应用目录内的路径' };
+    const libraryRoot = process.env.IFTREE_LIBRARY_ROOT || join(PROJECT_ROOT, 'library');
+    let resolved: string;
+    if (isAbsolute(target)) {
+      resolved = resolve(target);
+      if (!isSameOrChildPath(resolved, PROJECT_ROOT) && !isSameOrChildPath(resolved, home) && !isSameOrChildPath(resolved, libraryRoot)) {
+        return { ok: false, error: '仅允许打开应用目录内的路径' };
+      }
+    } else {
+      resolved = resolve(PROJECT_ROOT, target);
+      if (!isSameOrChildPath(resolved, PROJECT_ROOT)) return { ok: false, error: '路径无效' };
+      // 与 web-server 的 IFTREE_LIBRARY_ROOT 口径一致：该变量生效时 'library' 指向被覆盖的根。
+      if (target.replace(/\\/g, '/').replace(/\/+$/, '') === 'library') resolved = resolve(libraryRoot);
     }
-    if (!existsSync(resolved)) return { ok: false, error: '路径不存在' };
-    const openTarget = statSync(resolved).isDirectory() ? resolved : dirname(resolved);
-    const error = await shell.openPath(openTarget);
+    try {
+      mkdirSync(resolved, { recursive: true });
+    } catch {
+      return { ok: false, error: '路径不存在且无法创建' };
+    }
+    if (!statSync(resolved).isDirectory()) resolved = dirname(resolved);
+    const error = await shell.openPath(resolved);
     return error ? { ok: false, error } : { ok: true };
   });
 }

@@ -11,9 +11,9 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
 ![platform](https://img.shields.io/badge/platform-Windows-lightgrey)
-![status](https://img.shields.io/badge/status-0.2.0%20alpha-orange)
+![status](https://img.shields.io/badge/status-0.2.1%20alpha-orange)
 
-> **Project status: 0.2.0, early development.** The project is under active development; treat it as an early release:
+> **Project status: 0.2.1, early development.** The project is under active development; treat it as an early release:
 >
 > - **Frontend**: no known bugs or crashes in read-only mode (including PDF paper reading); editing and collaboration features are still being refined.
 > - **Backend write path**: lacks long-term real-world testing — the project is young, so there simply hasn't been enough accumulated runtime yet.
@@ -25,13 +25,13 @@
 
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [Introduction](#introduction)
 - [Documentation](#documentation)
 - [Features](#features)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
 - [Requirements](#requirements)
-- [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Data Storage](#data-storage)
 - [Semantic Vectors](#semantic-vectors)
@@ -43,6 +43,44 @@
 - [Acknowledgments](#acknowledgments)
 
 ---
+
+## Quick Start
+
+Install dependencies (first time):
+
+```powershell
+npm install
+```
+
+Build the frontend and launch the app:
+
+```powershell
+npm run build
+npm run app
+```
+
+> `npm run app` first builds, then prebuilds better-sqlite3 for the node ABI. The desktop shell is Electron, but the frontend no longer uses native modules in-process — the main process spawns a separate node backend. After changing the main process or preload, restart the Electron window.
+
+Development mode uses two terminals. Start the Vite dev server in terminal 1:
+
+```powershell
+npm run dev
+```
+
+In terminal 2, point Electron at that server:
+
+```powershell
+$env:IFTREE_WEB_URL = 'http://127.0.0.1:5173'
+npm run app
+```
+
+On Windows you can also double-click `start.bat`. On Linux or macOS, run this from the project root:
+
+```sh
+sh start.sh
+```
+
+Both scripts run “install dependencies → build → launch” automatically.
 
 ## Introduction
 
@@ -119,44 +157,6 @@ Reading papers in the PDF view is the headline experience: import, read, then le
 - **Package manager**: npm.
 - **Semantic vector models (optional)**: the project does not require Qwen3 or BGE to start. Without either model, only semantic-vector indexing and retrieval are unavailable; keyword search and all other features continue to work. The default Qwen option requires local Ollama with `qwen3-embedding:0.6b`; BGE requires the optional local Transformers.js inference dependency.
 - **GPU (optional)**: Ollama chooses CPU or GPU automatically; Transformers.js BGE models can be switched between WebGPU and CPU in settings.
-
-## Quick Start
-
-Install dependencies (first time):
-
-```powershell
-npm install
-```
-
-Build the frontend and launch the app:
-
-```powershell
-npm run build
-npm run app
-```
-
-> `npm run app` first builds, then prebuilds better-sqlite3 for the node ABI. The desktop shell is Electron, but the frontend no longer uses native modules in-process — the main process spawns a separate node backend. After changing the main process or preload, restart the Electron window.
-
-Development mode uses two terminals. Start the Vite dev server in terminal 1:
-
-```powershell
-npm run dev
-```
-
-In terminal 2, point Electron at that server:
-
-```powershell
-$env:IFTREE_WEB_URL = 'http://127.0.0.1:5173'
-npm run app
-```
-
-On Windows you can also double-click `start.bat`. On Linux or macOS, run this from the project root:
-
-```sh
-sh start.sh
-```
-
-Both scripts run “install dependencies → build → launch” automatically.
 
 ## Configuration
 

@@ -483,6 +483,42 @@ button {
   line-height: 1.35;
 }
 
+/* API Key 输入框内嵌清空按钮：输入区留出右内边距，垃圾桶绝对定位在框内右侧 */
+.llm-apikey-control {
+  position: relative;
+  display: block;
+}
+
+.llm-apikey-control input {
+  padding-right: 38px;
+}
+
+.llm-apikey-clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.llm-apikey-clear:hover:not(:disabled) {
+  background: var(--background-modifier-hover);
+  color: var(--color-danger-text);
+}
+
+.llm-apikey-clear:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .summary-strategy-current {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -616,6 +652,197 @@ button {
   cursor: default;
 }
 
+/* 外观 · 自定义颜色：行左色板 + 右侧取色器/重置 */
+.appearance-theme-select {
+  min-width: 180px;
+}
+
+/* 主题行控件：可编辑下拉（combobox）撑满 + 保存/删除靠右 */
+.appearance-theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* 可编辑下拉：输入框 + 右侧小按钮一体，风格对齐 settings-segment 的紧凑感 */
+.appearance-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.appearance-combo .appearance-theme-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-normal);
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.appearance-combo .appearance-theme-name:disabled {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+/* 覆盖 .settings-row-control button 的全局大按钮样式：combo 内按钮保持小巧无边框 */
+.settings-row-control .appearance-combo .appearance-combo-toggle {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings-row-control .appearance-combo .appearance-combo-toggle:hover {
+  background: var(--background-secondary);
+  border-color: transparent;
+  color: var(--text-normal);
+}
+
+.appearance-save-button {
+  flex: 0 0 auto;
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--interactive-accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.settings-row-control .appearance-save-button {
+  min-height: 0;
+  border: 0;
+  background: transparent;
+  color: var(--interactive-accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+}
+
+.settings-row-control .appearance-save-button:hover {
+  background: var(--background-secondary);
+  border-color: transparent;
+}
+
+.settings-row-control .appearance-icon-button {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.settings-row-control .appearance-icon-button:hover:not(:disabled) {
+  background: var(--background-secondary);
+  border-color: transparent;
+  color: var(--color-danger-text);
+}
+
+.settings-row-control .appearance-icon-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* 主题下拉菜单（portal 浮层） */
+.appearance-theme-menu {
+  position: fixed;
+  z-index: 420;
+  min-width: 200px;
+  padding: 5px;
+  border: 1px solid var(--background-modifier-border-strong);
+  border-radius: 7px;
+  background: var(--background-primary);
+  box-shadow: 0 10px 28px var(--shadow-md);
+  user-select: none;
+}
+
+.appearance-theme-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-start;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  height: 30px;
+  padding: 0 10px;
+  color: var(--text-normal);
+  cursor: pointer;
+  text-align: left;
+}
+
+.appearance-theme-menu button:hover {
+  background: var(--background-modifier-hover);
+}
+
+.appearance-theme-menu button.active {
+  color: var(--interactive-accent-hover);
+  font-weight: 600;
+}
+
+.appearance-theme-menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--background-modifier-border);
+}
+
+.appearance-color-swatch {
+  display: block;
+  width: 17px;
+  height: 17px;
+  border: 1px solid var(--background-modifier-border-strong);
+  border-radius: 5px;
+  background: var(--background-secondary);
+}
+
+.appearance-color-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.appearance-color-control input[type="color"] {
+  width: 52px;
+  min-height: 34px;
+  padding: 3px;
+  cursor: pointer;
+}
+
+.appearance-color-control button {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  padding: 0;
+}
+
 .settings-path-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto auto;
@@ -744,6 +971,19 @@ button {
 .workspace-ribbon button.active {
   background: var(--accent-soft);
   color: var(--interactive-accent-hover);
+}
+
+/* 禁用态（实体维护在无文档时）：虚化并禁用 hover/指针 */
+.workspace-ribbon button:disabled {
+  opacity: 0.38;
+  cursor: default;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.workspace-ribbon button:disabled:hover {
+  background: transparent;
+  color: var(--text-muted);
 }
 
 .sidebar-right {
@@ -1950,8 +2190,25 @@ code {
   width: 100%;
   justify-content: flex-start;
   border: 0;
+  border-radius: 5px;
   background: transparent;
   height: 30px;
+  color: var(--text-normal);
+  cursor: pointer;
+}
+
+/* 鼠标位置指示：与左侧文件树 doc-row:hover 同一枚 hover token；禁用项不响应 */
+.summary-menu button:hover:not(:disabled),
+.view-options-menu button:hover:not(:disabled),
+.diff-branch-menu button:hover:not(:disabled) {
+  background: var(--background-modifier-hover);
+}
+
+.summary-menu button:disabled,
+.view-options-menu button:disabled,
+.diff-branch-menu button:disabled {
+  color: var(--text-faint);
+  cursor: default;
 }
 
 .diff-branch-menu button {
@@ -2104,7 +2361,7 @@ code {
   gap: 12px;
   width: min(520px, calc(100vw - 48px));
   padding: 18px 20px 20px;
-  border: 1px solid var(--color-warning-border);
+  border: 1px solid var(--background-modifier-border-strong);
   border-radius: 10px;
   background: var(--background-primary);
   color: var(--text-normal);
@@ -3720,8 +3977,8 @@ code {
   display: grid;
   justify-items: start;
   gap: 8px;
-  width: min(390px, calc(100% - 48px));
-  max-width: 390px;
+  width: min(480px, calc(100% - 48px));
+  max-width: 480px;
   padding: 14px 0;
   color: var(--ink-muted);
   font-size: 13px;
@@ -3756,6 +4013,33 @@ code {
   font-size: 17px;
   font-weight: 720;
   letter-spacing: -0.02em;
+}
+
+/* 链接式按钮：覆盖 .view-prompt-card button 的盒样式，仅保留下划线文字外观。
+   长链接允许在词间（空格）断行，避免在窄卡片里被整体挤到下一行。 */
+.view-prompt-card .view-prompt-link {
+  display: inline;
+  height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--text-accent-strong);
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.view-prompt-card .view-prompt-link:hover {
+  color: var(--interactive-accent-hover);
+}
+
+.view-prompt-path {
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .view-prompt-title {

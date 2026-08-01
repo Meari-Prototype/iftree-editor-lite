@@ -243,6 +243,22 @@ export function createDocumentCommands(getDeps: () => DocumentCommandDeps) {
     view.resetLocateRequest();
   }
 
+  // 关闭当前文档（不删除数据）：回到「未打开文档」空态。编辑模式下先走离场确认
+  // （保存/丢弃/取消），取消则中止关闭。选中中的库文件一并清掉，避免空态卡显示旧条目。
+  async function closeDoc() {
+    const deps = getDeps();
+    const { view, ui, editor } = deps;
+    if (editor.isLifecycleTransitioning()) {
+      ui.setNotice(getUiMessages().notices.editTransitionBusy);
+      return false;
+    }
+    const canLeave = await editor.confirmLeaveEditMode();
+    if (!canLeave) return false;
+    view.setSelectedLibraryEntry(null);
+    clearActiveDocumentForLibraryFile();
+    return true;
+  }
+
   function showLibraryFileOnly(item: unknown, noticeText = getUiMessages().notices.sourceNotImported) {
     const deps = getDeps();
     deps.view.setSelectedLibraryEntry(item);
@@ -282,6 +298,7 @@ export function createDocumentCommands(getDeps: () => DocumentCommandDeps) {
     currentVisualDocId,
     refreshDocs,
     openDoc,
+    closeDoc,
     openLibraryNavigation,
     createDoc,
     deleteDoc,

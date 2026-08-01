@@ -223,7 +223,24 @@ export function LlmSummarySettingsPanel({
               </label>
               <label className="llm-field llm-field-wide">
                 <span>API Key</span>
-                <input type="password" value={activeApi.apiKey || ''} onChange={(event) => updateApi({ apiKey: event.target.value })} placeholder={text.apiKeyPlaceholder} />
+                <span className="llm-apikey-control">
+                  <input
+                    type="password"
+                    value={activeApi.apiKey || ''}
+                    onChange={(event) => updateApi({ apiKey: event.target.value })}
+                    placeholder={text.apiKeyPlaceholder}
+                  />
+                  <button
+                    type="button"
+                    className="llm-apikey-clear"
+                    title={text.clearApiKey}
+                    aria-label={text.clearApiKey}
+                    disabled={!activeApi.apiKey}
+                    onClick={() => updateApi({ apiKey: '' })}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </span>
               </label>
               <label className="llm-field">
                 <span>{text.endpoint}</span>

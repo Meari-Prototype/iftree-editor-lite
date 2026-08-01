@@ -603,7 +603,15 @@ const server = createServer(async (request, response) => {
         return;
       }
       const rawName = url.searchParams.get('name') || 'document';
-      const parsed = parse(rawName.replace(/[<>:"/\\|?*]/g, '_'));
+      // 上传文件名来自浏览器 file.name,是客户端磁盘上的真实名。macOS/Linux 允许 NTFS
+      // 保留字符(如 ?),原样落盘才能与源系统行为一致;Windows 本地文件本就不含这些字符,
+      // 仅当跨平台把 mac 上含保留字符的文件传到 Windows 后端时才需要拒绝——在落盘前显式
+      // 400 并提示改名,比 createWriteStream 抛 500 更诚实,也不会留下半截文件。
+      if (/[<>:"/\\|?*]/.test(rawName)) {
+        sendJson(response, 400, { ok: false, error: `文件名含 Windows 不允许的字符（<>:"/\\|?*），请改名后重新导入：${rawName}` });
+        return;
+      }
+      const parsed = parse(rawName);
       let name = parsed.base || 'document';
       let target = join(ensureLibraryRoot(), name);
       let suffix = 1;

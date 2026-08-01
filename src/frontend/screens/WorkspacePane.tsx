@@ -166,6 +166,7 @@ export function WorkspacePane() {
         toggleTreeEditMode={editor.toggleTreeEditMode}
         hasTree={Boolean(currentDoc?.tree && !currentDoc?.virtual)}
         hasDoc={Boolean(currentDoc?.tree)}
+        onCloseDocument={() => { void documentCommands.closeDoc(); }}
         busy={busy}
         recomputeCurrentTreeView={() => applyVisibleDepth(depthLimit, { clearAll: false })}
         setVisibleDepth={applyVisibleDepth}

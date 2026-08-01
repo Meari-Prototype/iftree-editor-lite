@@ -70,6 +70,8 @@ export interface WorkspaceHeaderProps<SummaryRequest extends SummaryConfirmReque
   hasTree: boolean;
   /** 是否已打开任意文档（含虚拟文档）：决定深度工具组是否渲染 */
   hasDoc?: boolean;
+  /** 关闭当前文档（「更多」菜单项）；缺省或不支持时该项禁用 */
+  onCloseDocument?: () => void;
   /** 右侧智能体栏折叠状态与切换（header 最右的显隐按钮） */
   rightSidebarCollapsed?: boolean;
   onToggleRightSidebar?: () => void;
@@ -101,6 +103,7 @@ export function WorkspaceHeader<SummaryRequest extends SummaryConfirmRequest>({
   toggleTreeEditMode,
   hasTree,
   hasDoc,
+  onCloseDocument,
   rightSidebarCollapsed = true,
   onToggleRightSidebar,
   busy,
@@ -161,6 +164,9 @@ export function WorkspaceHeader<SummaryRequest extends SummaryConfirmRequest>({
           menu.close();
           onOpenDiff?.(branch);
         }}>{text.viewDraftDiff}</button>
+        <button type="button" disabled={!hasDoc || busy} onClick={() => { menu.close(); onCloseDocument?.(); }}>
+          {text.closeDocument}
+        </button>
         {activeTab === 'tree' ? (
           <button type="button" disabled={!hasTree || busy} onClick={() => { menu.close(); recomputeCurrentTreeView?.(); }}>
             {text.rebuildTree}

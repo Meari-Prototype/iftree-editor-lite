@@ -18,10 +18,15 @@ import { z } from 'zod';
 
 import { createBackendClient } from '../backend/llm/backend-client.js';
 import { backendDescriptorPath, resolveBackendDbPath, removeBackendDescriptorIfOwn } from '../backend/llm/backend-discovery.js';
+import { applyDotEnvToProcessEnv } from '../backend/llm/settings.js';
 import { NODE_TYPES, NODE_TYPE_LABELS } from '../core/node-model.js';
 
 // 本模块产物住 dist/src/mcp/，项目根在三级之上。
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+// mcp-server 是独立后端进程：父进程直接读 process.env 的变量（嵌入后端 IFTREE_EMBED_*、
+// agent 超时 IFTREE_AGENT_TIMEOUT_MS 等）此前吃不到项目根 .env——只填未显式设置的键，
+// 与 headless host 内灌入同一语义（不覆盖外部注入）。
+applyDotEnvToProcessEnv(join(PROJECT_ROOT, '.env'));
 // doc/node/commit(历史)/ref 标识统一为 UUID v7 字符串；整数 id 已退役（save_history 退役后不再有整数历史 id）。
 const docIdSchema = z.string().min(1);
 

@@ -3,6 +3,7 @@
 *.bak binary
 *.db binary
 *.docx binary
+*.exe binary
 *.gif binary
 *.ico binary
 *.jpg binary

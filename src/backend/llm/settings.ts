@@ -172,6 +172,16 @@ export function readDotEnv(envPath: string | null | undefined): EnvMap {
   return values;
 }
 
+// 把项目根 .env 灌进 process.env，只填当前未显式设置的键（不覆盖外部注入）。
+// 为什么需要：headless host 自己有这段，但 mcp-server、CLI db 等独立后端进程是
+// 直接拉起 host、不经 host 内灌入——它们在父进程里读 process.env 的变量
+// （IFTREE_EMBED_* / IFTREE_AGENT_TIMEOUT_MS 等）就吃不到 .env。统一在各入口启动早期调用。
+export function applyDotEnvToProcessEnv(envPath: string | null | undefined): void {
+  for (const [key, value] of Object.entries(readDotEnv(envPath))) {
+    if (process.env[key] === undefined && value !== undefined) process.env[key] = value;
+  }
+}
+
 export function decodeDotEnvMultiline(value: unknown): string {
   return String(value || '').replace(/\\n/g, '\n');
 }
@@ -283,8 +293,14 @@ export function normalizeSummaryStrategySettings(config: SummaryStrategySettings
 
 export function apiKeyFor(env: EnvMap, providerId: unknown, apiId: unknown, legacyValue: string = ''): string {
   const key = llmApiKeyEnvKey(providerId, apiId);
-  const specific = process.env[key] || (env || {})[key] || legacyValue || '';
-  if (specific) return specific;
+  // 专属键只要存在就生效——包括空串（用户主动删 Key 的语义）。此前用 `||` 链，
+  // 空串会穿过落到供应商级回退（deepseek/openai 的 DEEPSEEK_API_KEY/OPENAI_API_KEY），
+  // 导致「删掉某 API 的 Key，切到同供应商另一条 API 又显示有 Key」。
+  const fromProcess = process.env[key];
+  if (fromProcess !== undefined) return fromProcess;
+  const fromEnv = (env || {})[key];
+  if (fromEnv !== undefined) return fromEnv;
+  if (legacyValue) return legacyValue;
   const provider = String(providerId || '').toLowerCase();
   if (provider.includes('deepseek')) {
     return process.env.DEEPSEEK_API_KEY || env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || env.OPENAI_API_KEY || '';

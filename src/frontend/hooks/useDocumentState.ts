@@ -24,6 +24,7 @@ import {
 } from '../lib/doc-utils.js';
 import { documentRepository } from '../data/document-repository.js';
 import { treeViewRepository } from '../data/repositories.js';
+import { debugPerfBegin, debugPerfEnd } from '../lib/debug-log.js';
 import { readTreeDefaultDepth } from '../lib/ui-prefs.js';
 import { useAppUIContext } from './useAppUI.js';
 import { getUiMessages } from '../../lang/ui.js';
@@ -174,12 +175,14 @@ export function useDocumentState() {
     const docId = sessionRef.current?.docId;
     if (!docId || !fetch?.parentId || !sessionRef.current) return;
     const generation = bgRef.current.token;
+    const perfRpc = debugPerfBegin('fetchChildrenInto.rpc');
     const result = await documentRepository.getNodeChildren({
       docId,
       parentId: fetch.parentId,
       offset: fetch.offset || 0,
       limit: fetch.limit || NODE_CHILDREN_PAGE_SIZE
     });
+    debugPerfEnd('fetchChildrenInto.rpc', perfRpc, { rows: result?.rows?.length ?? 0 });
     if (bgRef.current.token !== generation || !sessionRef.current) return;
     sessionRef.current = ingestChildren(sessionRef.current, {
       parentId: fetch.parentId,
@@ -238,12 +241,21 @@ export function useDocumentState() {
   // 避免「预取→超窗→驱逐→再预取」的振荡把整个文档流过内存。
   function startBackgroundPrefetch(): void {
     const token = ++bgRef.current.token;
+    const perfStart = debugPerfBegin('backgroundPrefetch');
+    let rounds = 0;
     const step = async (): Promise<void> => {
       if (bgRef.current.token !== token) return;
       if (!sessionRef.current) return;
-      if (loadedNodeCount(sessionRef.current) >= DEFAULT_EVICT_WINDOW) return; // 预取至 W 停
+      if (loadedNodeCount(sessionRef.current) >= DEFAULT_EVICT_WINDOW) {
+        debugPerfEnd('backgroundPrefetch', perfStart, { rounds, loaded: loadedNodeCount(sessionRef.current), done: false });
+        return; // 预取至 W 停
+      }
       const fetch = nextBackgroundFetch(sessionRef.current);
-      if (!fetch) return; // 全量加载完，循环自然结束
+      if (!fetch) {
+        debugPerfEnd('backgroundPrefetch', perfStart, { rounds, loaded: sessionRef.current ? loadedNodeCount(sessionRef.current) : 0, done: true });
+        return; // 全量加载完，循环自然结束
+      }
+      rounds += 1;
       try {
         await fetchChildrenInto(fetch);
         if (bgRef.current.token !== token) return;
@@ -284,10 +296,13 @@ export function useDocumentState() {
   // 再扩散填热区（前台即时），最后启动后台预取至全量。返回投影后的 currentDoc。
   async function loadComplete(docId: unknown, label: string = getUiMessages().notices.openingDocument, options: LoadCompleteOptions = {}): Promise<ProjectedDoc | DocGetResult | null> {
     lock?.({ label, step: 0, total: 0 });
+    const perfTotal = debugPerfBegin('loadComplete.total');
     try {
+      const perfGetDoc = debugPerfBegin('loadComplete.getDoc');
       const initial = await documentRepository.getDoc(treeDocRequest(docId, 1, {
         includeEditBranch: options.includeEditBranch
       }));
+      debugPerfEnd('loadComplete.getDoc', perfGetDoc);
       const normalizedDocId = normalizeDocId(initial?.doc?.id || docId);
       if (!normalizedDocId) return initial ?? null;
 
@@ -310,9 +325,14 @@ export function useDocumentState() {
 
       const rootId = sessionRef.current.index.root?.id;
       // 无条件取根的直接子（不依赖 doc.get 是否带 child_count），再以根为焦点扩散填热区。
+      const perfChildren = debugPerfBegin('loadComplete.rootChildren');
       await fetchChildrenInto({ parentId: rootId, offset: 0 });
+      debugPerfEnd('loadComplete.rootChildren', perfChildren);
+      const perfHot = debugPerfBegin('loadComplete.fillHotRegion');
       await fillHotRegion(rootId);
+      debugPerfEnd('loadComplete.fillHotRegion', perfHot, { loaded: sessionRef.current ? loadedNodeCount(sessionRef.current) : 0 });
       const projected = project();
+      debugPerfEnd('loadComplete.total', perfTotal, { loaded: sessionRef.current ? loadedNodeCount(sessionRef.current) : 0 });
       startBackgroundPrefetch();
       return projected;
     } catch (error) {

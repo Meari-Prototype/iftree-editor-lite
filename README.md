@@ -11,9 +11,9 @@
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)
 ![platform](https://img.shields.io/badge/platform-Windows-lightgrey)
-![status](https://img.shields.io/badge/status-0.2.0%20alpha-orange)
+![status](https://img.shields.io/badge/status-0.2.1%20alpha-orange)
 
-> **项目状态：0.2.0，早期开发阶段。** 项目仍在活跃开发中，请按早期版本对待：
+> **项目状态：0.2.1，早期开发阶段。** 项目仍在活跃开发中，请按早期版本对待：
 >
 > - **前端**：只读模式（含 PDF 论文阅读）已无明显 bug 或崩溃；编辑与协作功能仍在完善。
 > - **后端写入路径**：缺少长期使用的实测——项目开发时间尚短，客观上还没有积累足够的长时运行数据。
@@ -25,13 +25,13 @@
 
 ## 目录
 
+- [快速开始](#快速开始)
 - [简介](#简介)
 - [文档](#文档)
 - [功能特性](#功能特性)
 - [界面预览](#界面预览)
 - [技术栈](#技术栈)
 - [环境要求](#环境要求)
-- [快速开始](#快速开始)
 - [配置](#配置)
 - [数据存储](#数据存储)
 - [语义向量](#语义向量)
@@ -43,6 +43,44 @@
 - [致谢](#致谢)
 
 ---
+
+## 快速开始
+
+首次安装依赖：
+
+```powershell
+npm install
+```
+
+构建前端并启动应用：
+
+```powershell
+npm run build
+npm run app
+```
+
+> `npm run app` 会先构建、再把 better-sqlite3 按 node ABI 预编译。桌面端是 Electron 外壳，但前端不再 in-process 用原生模块，由主进程拉起独立的 node 后端进程。修改主进程或 preload 后，需要重启 Electron 窗口。
+
+开发模式需要两个终端。终端 1 启动 Vite dev server：
+
+```powershell
+npm run dev
+```
+
+终端 2 让 Electron 加载该地址：
+
+```powershell
+$env:IFTREE_WEB_URL = 'http://127.0.0.1:5173'
+npm run app
+```
+
+Windows 上也可以直接双击 `start.bat`。Linux / macOS 在项目根目录运行：
+
+```sh
+sh start.sh
+```
+
+两个脚本都会自动完成“安装依赖 → 构建 → 启动”。
 
 ## 简介
 
@@ -117,44 +155,6 @@ PDF 论文阅读是本项目的首选体验：从导入到阅读、再到让 Age
 - **包管理器**：npm。
 - **语义向量模型（可选）**：项目启动不要求安装 Qwen3 或 BGE 模型；未安装时只不能构建和使用语义向量，关键词检索及其他功能不受影响。使用默认 Qwen 时需要本机 Ollama 与 `qwen3-embedding:0.6b` 权重；选择 BGE 时才需要可选的 Transformers.js 本地推理依赖。
 - **GPU（可选）**：Ollama 自行决定使用 CPU / GPU；选择 Transformers.js BGE 模型时可在设置页切换 WebGPU / CPU。
-
-## 快速开始
-
-首次安装依赖：
-
-```powershell
-npm install
-```
-
-构建前端并启动应用：
-
-```powershell
-npm run build
-npm run app
-```
-
-> `npm run app` 会先构建、再把 better-sqlite3 按 node ABI 预编译。桌面端是 Electron 外壳，但前端不再 in-process 用原生模块，由主进程拉起独立的 node 后端进程。修改主进程或 preload 后，需要重启 Electron 窗口。
-
-开发模式需要两个终端。终端 1 启动 Vite dev server：
-
-```powershell
-npm run dev
-```
-
-终端 2 让 Electron 加载该地址：
-
-```powershell
-$env:IFTREE_WEB_URL = 'http://127.0.0.1:5173'
-npm run app
-```
-
-Windows 上也可以直接双击 `start.bat`。Linux / macOS 在项目根目录运行：
-
-```sh
-sh start.sh
-```
-
-两个脚本都会自动完成“安装依赖 → 构建 → 启动”。
 
 ## 配置
 
