@@ -9,11 +9,15 @@
 *.jpg binary
 *.jpeg binary
 *.lance/** binary
+*.otf binary
 *.pdf binary
 *.png binary
 *.sqlite binary
 *.sqlite3 binary
+*.ttf binary
 *.webp binary
+*.woff binary
+*.woff2 binary
 *.xlsx binary
 
 output/** -diff
